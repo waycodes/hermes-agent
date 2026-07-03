@@ -1445,6 +1445,34 @@ class TestBuildAnthropicKwargs:
         assert kwargs["thinking"] == {"type": "adaptive", "display": "summarized"}
         assert kwargs["output_config"] == {"effort": "max"}
 
+    def test_reasoning_config_preserves_max_effort_for_bedrock_4_8_models(self):
+        kwargs = build_anthropic_kwargs(
+            model="global.anthropic.claude-opus-4-8",
+            messages=[{"role": "user", "content": "maximum reasoning please"}],
+            tools=None,
+            max_tokens=4096,
+            reasoning_config={"enabled": True, "effort": "max"},
+            base_url="https://bedrock-runtime.us-west-2.amazonaws.com",
+        )
+        assert kwargs["thinking"] == {"type": "adaptive", "display": "summarized"}
+        assert kwargs["output_config"] == {"effort": "max"}
+        assert "budget_tokens" not in kwargs["thinking"]
+        assert "temperature" not in kwargs
+
+    def test_reasoning_config_preserves_xhigh_effort_for_bedrock_4_8_models(self):
+        kwargs = build_anthropic_kwargs(
+            model="global.anthropic.claude-opus-4-8",
+            messages=[{"role": "user", "content": "think harder"}],
+            tools=None,
+            max_tokens=4096,
+            reasoning_config={"enabled": True, "effort": "xhigh"},
+            base_url="https://bedrock-runtime.us-west-2.amazonaws.com",
+        )
+        assert kwargs["thinking"] == {"type": "adaptive", "display": "summarized"}
+        assert kwargs["output_config"] == {"effort": "xhigh"}
+        assert "budget_tokens" not in kwargs["thinking"]
+        assert "temperature" not in kwargs
+
     def test_opus_4_7_strips_sampling_params(self):
         # Opus 4.7 returns 400 on non-default temperature/top_p/top_k.
         # build_anthropic_kwargs must strip them as a safety net even if an
